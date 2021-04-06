@@ -126,8 +126,9 @@ ggplot(cited, aes(x = year, y = cited_n)) +
 
 
 ```{r download, echo=FALSE}
+# TODO: add tryCatch for first time rendering (-> just render file again on error)
 downloadthis::download_file(
-  path = dir("first_report_files/figure-html/", full.names = TRUE),
+  path = dir("index_files/figure-html/", full.names = TRUE),
   output_name = "Plots",
   button_label = "Download Plots",
   button_type = "success", # "default", "primary", "success", "info", "warning", "danger"
