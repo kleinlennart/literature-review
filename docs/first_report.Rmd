@@ -1,0 +1,139 @@
+---
+title: "Literature Review on Student Privacy"
+author: "Lennart Klein"
+date: "6th April, 2021"
+output: 
+  html_document:
+    highlight: "tango"
+    code_folding: "hide"
+    self_contained: false
+    toc: true
+    toc_float: true
+---
+
+---
+**Data from** [Web of Science](http://apps.webofknowledge.com/).  
+  
+**Query:** `TOPIC: (privacy AND student)`\
+**Timespan:** All years.\
+**Indexes:** SCI-EXPANDED, SSCI, A&HCI, CPCI-S, CPCI-SSH, BKCI-S, BKCI-SSH, ESCI, CCR-EXPANDED, IC.
+  
+    
+
+```{r setup, include=FALSE, code_folding="show"}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  error = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+knitr::opts_knit$set(progress = TRUE)
+
+library(tidyverse)
+```
+
+### Read in the data
+```{r read-data, class.source = 'fold-show'}
+setwd(here::here("data", "WoS"))
+files <- dir(full.names = TRUE, pattern = ".txt")
+source("col_specs.R")
+dat <- map_dfr(files, read_csv, skip = 3, col_type = col_specs)
+```
+
+### Explore dataset
+```{r glimpse, class.source = 'fold-show'}
+skimr::skim(dat)
+```
+
+### Wrangle & Clean data
+```{r clean-data, class.source = 'fold-show'}
+# Clean names
+names(dat)[!str_detect(names(dat), "\\d")] <-
+  janitor::make_clean_names(names(dat)[!stringr::str_detect(names(dat), "\\d")])
+
+# format date
+dat <- dat %>%
+  mutate(
+    publication_year = publication_year %>% lubridate::ymd(truncated = 2L)
+  )
+```
+
+
+
+
+### Plot Time series
+```{r plot-theming, include=FALSE}
+library(extrafont)
+loadfonts() # Register the fonts with R
+
+theme_lk <- ggthemes::theme_fivethirtyeight() +
+  theme(
+    plot.title.position = "plot",
+    plot.caption = element_text(size = 7),
+    # axis.title = element_text(size = 10),
+    text = element_text(family = "Helvetica Neue")
+  )
+
+caption <- "\nSource: Web of Science Citation Report · Graphic: @kleinlennart"
+title <- "Literature on Student Privacy"
+```
+
+```{r plot-published}
+published <- dat %>%
+  group_by(publication_year) %>%
+  summarise(n = n()) %>%
+  filter(publication_year < Sys.Date()) # filter out flawed year entries
+
+ggplot(published, aes(x = publication_year, y = n)) +
+  geom_area(fill = "#689f38", color = "#387002", alpha = 0.6) +
+  scale_x_date(
+    limit = c(as.Date("2001-01-01"), as.Date("2021-01-01")),
+    date_breaks = "1 year", labels = scales::date_format("%y")
+  ) +
+  labs(
+    title = title,
+    subtitle = "New Publications per Year",
+    caption = caption,
+    x = "Publication Date", y = ""
+  ) + theme_lk
+```
+
+
+```{r plot-cited}
+cited <- dat %>%
+  select("1965":"2021") %>%
+  summarise(across(everything(), sum, na.rm = TRUE)) %>%
+  pivot_longer(everything(), names_to = "year", values_to = "cited_n") %>%
+  mutate(
+    year = year %>% lubridate::ymd(truncated = 2L)
+  )
+
+ggplot(cited, aes(x = year, y = cited_n)) +
+  geom_area(fill = "#039be5", color = "#006db3", alpha = 0.6) +
+  scale_x_date(
+    limit = c(as.Date("2001-01-01"), as.Date("2021-01-01")),
+    date_breaks = "1 year", labels = scales::date_format("%y")
+  ) +
+  labs(
+    title = title,
+    subtitle = "Sum of Times Cited per Year",
+    caption = caption,
+    x = "Publication Date", y = ""
+  ) +
+  theme_lk
+```
+
+
+
+```{r download, echo=FALSE}
+downloadthis::download_file(
+  path = dir("first_report_files/figure-html/", full.names = TRUE),
+  output_name = "Plots",
+  button_label = "Download Plots",
+  button_type = "success", # "default", "primary", "success", "info", "warning", "danger"
+  has_icon = TRUE,
+  icon = "fa fa-save",
+  self_contained = FALSE
+)
+```
+
