@@ -87,7 +87,7 @@ published <- dat %>%
 ggplot(published, aes(x = publication_year, y = n)) +
   geom_area(fill = "#689f38", color = "#387002", alpha = 0.6) +
   scale_x_date(
-    limit = c(as.Date("2001-01-01"), as.Date("2021-01-01")),
+    limit = c(as.Date("2001-01-01"), as.Date("2020-01-01")),
     date_breaks = "1 year", labels = scales::date_format("%y")
   ) +
   labs(
@@ -111,7 +111,7 @@ cited <- dat %>%
 ggplot(cited, aes(x = year, y = cited_n)) +
   geom_area(fill = "#039be5", color = "#006db3", alpha = 0.6) +
   scale_x_date(
-    limit = c(as.Date("2001-01-01"), as.Date("2021-01-01")),
+    limit = c(as.Date("2001-01-01"), as.Date("2020-01-01")),
     date_breaks = "1 year", labels = scales::date_format("%y")
   ) +
   labs(
@@ -123,6 +123,8 @@ ggplot(cited, aes(x = year, y = cited_n)) +
   theme_lk
 ```
 
+
+  
 
 
 ```{r download, echo=FALSE}
